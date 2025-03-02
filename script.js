@@ -55,3 +55,50 @@ document.addEventListener('DOMContentLoaded', function() {
         scoreDisplay.textContent = `Your score is ${storedScore} out of 5.`;
     }
 });
+
+// cypress/integration/quiz.spec.js
+describe('Multiple Choice Quiz', () => {
+    beforeEach(() => {
+        cy.visit('index.html');
+        cy.window().then((win) => {
+          win.sessionStorage.clear();
+          win.localStorage.clear();
+        });
+    });
+
+    it('Test 1: Checking Questions and UI Elements', () => {
+        cy.get('div#questions > div').should('have.length', 5);
+        cy.get('input[type="radio"]').should('have.length', 20);
+        cy.get('button#submit').should('exist');
+        cy.get('div#score').should('be.empty');
+    });
+
+    it('Test 2: Checking Session Storage (Progress Save)', () => {
+        cy.get('input[name="q1"][value="4"]').check();
+        cy.get('input[name="q2"][value="Paris"]').check();
+        cy.get('input[name="q3"][value="15"]').check();
+        cy.get('input[name="q4"][value="Jupiter"]').check();
+        cy.get('input[name="q5"][value="4"]').check();
+
+        cy.reload();
+
+        cy.get('input[name="q1"][value="4"]').should('be.checked');
+        cy.get('input[name="q2"][value="Paris"]').should('be.checked');
+        cy.get('input[name="q3"][value="15"]').should('be.checked');
+        cy.get('input[name="q4"][value="Jupiter"]').should('be.checked');
+        cy.get('input[name="q5"][value="4"]').should('be.checked');
+    });
+
+    it('Test 3: Checking Final Score Calculation & Local Storage', () => {
+        cy.get('input[name="q1"][value="4"]').check();
+        cy.get('input[name="q2"][value="Paris"]').check();
+        cy.get('input[name="q3"][value="15"]').check();
+        cy.get('input[name="q4"][value="Jupiter"]').check();
+        cy.get('input[name="q5"][value="4"]').check();
+
+        cy.get('button#submit').click();
+
+        cy.get('div#score').should('contain', 'Your score is 5 out of 5.');
+        cy.window().its('localStorage.score').should('eq', '5');
+    });
+});
